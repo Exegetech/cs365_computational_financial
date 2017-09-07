@@ -21,9 +21,10 @@ double future_value(double F0, double t0, double t1, double r)
 }
 
 //1.2 Discount factor
+
 double discount_factor(double F1, double t0, double t1, double r){
     double r_decimal = 0.01*r;
-    double df = F1*exp((-1)*r_decimal*(t1-t0));
+    double df = exp((-1)*r_decimal*(t1-t0));
     return df;
 }
 
@@ -42,8 +43,8 @@ int df_and_r(double F0, double F1, double t0, double t1, double & df, double & r
     }
     // *** you have to write the rest ***
     // calculate discount_factor value df and r
-    r= (log(F1/F0)/log(exp(1)))/(t1-t0)*100;
-    df = discount_factor(F1, t0, t1, r);
+    r= (log(F1/F0))/(t1-t0)*100;
+    df = F0/F1;
     return 0;
 }
 
@@ -51,6 +52,7 @@ int df_and_r(double F0, double F1, double t0, double t1, double & df, double & r
 //1.3 Bond Price from yield
 void price_from_yield(double F, double c, double y, int n, double & B){
     double y_decimal = 0.01*y;
+    B=0.0;
     for(int i=1; i<=n; i++){
         if(i!=n){
             B+= (0.5*c)/(pow(1+0.5*y_decimal, i));
@@ -108,7 +110,7 @@ int yield_from_price(double F, double c, int n, double B_market, double tol, int
             return 0;
         }
         
-        if(i==max_iter){
+        if(i==(max_iter-1)){
             y=0;
             return 1;
         }
