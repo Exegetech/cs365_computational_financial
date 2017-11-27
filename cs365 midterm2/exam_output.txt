@@ -1,0 +1,35 @@
+XingSongs-MacBook-Pro:exam xingsonglin$ g++ main.cpp
+XingSongs-MacBook-Pro:exam xingsonglin$ ./a.out
+5.3: Butterfly Spread
+S = 100, q = 1%, sigma = 45%, r = 5%, t=0, T=1
+--------------------
+K=50, X = 0.629216
+--------------------
+K=75, X = 0.990625
+--------------------
+K=100, X = 0.835512
+--------------------
+K=126, X = 0.552523
+--------------------
+K=150, X = 0.328343
+================================
+5.4: Implied volatility
+S = 100, q = 1%, r = 5%, t=0, T=1, K=150
+sigma=0.1, Call = 0.000371267
+sigma=0.2, Call = 0.315483
+sigma=0.3, Call = 1.9122
+sigma=0.31, Call = 2.14078
+sigma=0.4, Call = 4.59933
+sigma=0.5, Call = 7.91229
+-----------------------
+Finding sigma that 1.99<c<2.01
+sigma=0.3035, Call = 1.99099
+sigma=0.304, Call = 2.00236
+sigma=0.3042, Call = 2.00691
+sigma=0.3043, Call = 2.00919
+sigma=0.305, Call = 2.02517
+---------------------------
+Calculate the Delta of a call option using the sigma_0, where sigma_0 = 0.304
+sigma_0=0.304, Delta = 0.145355
+Finish.
+
