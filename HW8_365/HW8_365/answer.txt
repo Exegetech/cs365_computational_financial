@@ -1,0 +1,5 @@
+Why we must use n and not n_tree?
+    Answer:
+   	n_tree is the changeable variable, always set from 0 and n. n is the variable pass to the function. And it is the value I want to compute with.
+    	For Binomial model, we get the result and compute froward from back. n_tree just a copy of current n, but n is changed each time. If i use n_tree, it only compute from n_tree layer to the  first layer. The value may not be correct and accurate. 
+	The n_tree layer's value is keep updated. So, it may result wrong result. Which n is stable, we compute only, and store there without any further value changes. 

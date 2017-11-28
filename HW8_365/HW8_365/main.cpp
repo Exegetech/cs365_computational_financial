@@ -106,7 +106,7 @@ int binomial_simple(double S, double K, double r, double q, double sigma, double
     }
     delete [] stock_nodes;
     delete [] option_nodes;
-
+    
     return 0;
 }
 
@@ -189,7 +189,7 @@ BinomialModel::BinomialModel(int n)
     stock_nodes = NULL;
     value_nodes = NULL;
     Allocate(n);
-
+    
 }
 BinomialModel::~BinomialModel()
 {
@@ -198,15 +198,15 @@ BinomialModel::~BinomialModel()
 void BinomialModel::Clear()
 {
     // *** WRITE THE FUNCTION TO RELEASE ALLOCATED MEMORY ***
-    free(stock_nodes);
-    free(value_nodes);
+    stock_nodes = NULL;
+    value_nodes = NULL;
     /*
      for (int i = 0; i <= n; ++i) {
      delete [] stock_nodes[i];
-     delete [] option_nodes[i];
+     delete [] value_nodes[i];
      }
      delete [] stock_nodes;
-     delete [] option_nodes;
+     delete [] value_nodes;
      */
 }
 
@@ -214,25 +214,19 @@ int BinomialModel::Allocate(int n)
 {
     if (n <= n_tree) return 0;
     // deallocate old tree
-   
+    
     Clear();
     // allocate memory
     n_tree = n;
- 
+    
     // *** WRITE THE FUNCTION TO ALLOCATE NEW MEMORY ***
     stock_nodes = new double*[n_tree+1];
     value_nodes = new double*[n_tree+1];
     for (int i = 0; i <= n_tree; ++i) {
         stock_nodes[i] = new double[n_tree+1];
         value_nodes[i] = new double[n_tree+1];
-        double* S_tmp = stock_nodes[i];
-        double* V_tmp = value_nodes[i];
-        for (int j = 0; j <= n_tree; ++j) {
-            S_tmp[j] = 0;
-            V_tmp[j] = 0;
-        }
     }
-   
+    
     return 0;
 }
 
@@ -245,21 +239,9 @@ int BinomialModel::FairValue(int n, Derivative * p_derivative, double S, double 
         return 1;
     }
     // declaration of local variables (I use S_tmp and V_tmp)
-    stock_nodes = new double*[n+1];
-    value_nodes = new double*[n+1];
-    double* S_tmp;
-    double* V_tmp;
-    for (int i = 0; i <= n; ++i) {
-        stock_nodes[i] = new double[n+1];
-        value_nodes[i] = new double[n+1];
-        S_tmp = stock_nodes[i];
-        V_tmp = value_nodes[i];
-        for (int j = 0; j <= n; ++j) {
-            S_tmp[j] = 0;
-            V_tmp[j] = 0;
-        }
-    }
-    
+    // declarated in constoctor.
+    double* S_tmp=NULL;
+    double* V_tmp=NULL;
     // calculate parameters
     double dt = (p_derivative->T - t0)/double(n);
     double df = exp(-p_derivative->r*dt);
@@ -276,7 +258,14 @@ int BinomialModel::FairValue(int n, Derivative * p_derivative, double S, double 
     
     // allocate memory if required (call Allocate(n))
     Allocate(n);
-    
+    for(int i=0; i<=n; ++i){
+        S_tmp = stock_nodes[i];
+        V_tmp = value_nodes[i];
+        for (int j = 0; j <= n; ++j) {
+            S_tmp[j] = 0;
+            V_tmp[j] = 0;
+        }
+    }
     // set up stock prices in tree
     S_tmp = stock_nodes[0];
     S_tmp[0]=S;
@@ -314,7 +303,8 @@ int BinomialModel::FairValue(int n, Derivative * p_derivative, double S, double 
     V = V_tmp[0];
     
     // deallocate memory (if necessary)
-    //Clear();
+    
+    
     return 0;
 }
 
@@ -326,7 +316,6 @@ int binomial_test()
     // output file
     ofstream ofs;
     ofs.open("output.txt");
-   
     
     double S = 100;
     double K = 100;
@@ -378,7 +367,7 @@ int binomial_test()
     double FV_Eur_call = 0;
     
     int n = 100;
-   
+    
     BinomialModel binom(n);
     
     double dS = 0.1;
@@ -398,31 +387,32 @@ int binomial_test()
         ofs << setw(16) << FV_Eur_call << " ";
         ofs << endl;
     }
+    binom.~BinomialModel();
     ofs.close();
     return 0;
 }
 
 int main(int argc, const char * argv[]) {
     /*
-    //double check for code from hw7. result is same
-    double S = 100;
-    double K = 100;
-    double r = 0.1;
-    double q = 0.0;
-    double sigma = 0.5;
-    double T = 0.3;
-    double t0 = 0;
-    double n = 3;
-    double FV_Am_put = 0;
-    double FV_Eur_put = 0;
-    double FV_Am_call = 0;
-    double FV_Eur_call = 0;
-    binomial_simple(S, K, r, q, sigma, T, t0, false, true, n, FV_Am_put);
-    binomial_simple(S, K, r, q, sigma, T, t0, false, false, n, FV_Eur_put);
-    binomial_simple(S, K, r, q, sigma, T, t0, true, true, n, FV_Am_call);
-    binomial_simple(S, K, r, q, sigma, T, t0, true, false, n, FV_Eur_call);
-    cout << FV_Am_put << " "<<FV_Eur_put << " "<< FV_Am_call << " "<< FV_Eur_call << " "<< endl;
-    */
+     //double check for code from hw7. result is same
+     double S = 100;
+     double K = 100;
+     double r = 0.1;
+     double q = 0.0;
+     double sigma = 0.5;
+     double T = 0.3;
+     double t0 = 0;
+     double n = 3;
+     double FV_Am_put = 0;
+     double FV_Eur_put = 0;
+     double FV_Am_call = 0;
+     double FV_Eur_call = 0;
+     binomial_simple(S, K, r, q, sigma, T, t0, false, true, n, FV_Am_put);
+     binomial_simple(S, K, r, q, sigma, T, t0, false, false, n, FV_Eur_put);
+     binomial_simple(S, K, r, q, sigma, T, t0, true, true, n, FV_Am_call);
+     binomial_simple(S, K, r, q, sigma, T, t0, true, false, n, FV_Eur_call);
+     cout << FV_Am_put << " "<<FV_Eur_put << " "<< FV_Am_call << " "<< FV_Eur_call << " "<< endl;
+     */
     ofstream outfile;
     outfile.open("result_8.2.txt");
     double S = 0;
@@ -446,16 +436,19 @@ int main(int argc, const char * argv[]) {
         binomial_simple(S, K, r, q, sigma, T, t0, true, true, n, FV_Am_call);
         binomial_simple(S, K, r, q, sigma, T, t0, true, false, n, FV_Eur_call);
         // print output to file
-        outfile << S << " ";
-        outfile << FV_Am_put << " ";
-        outfile << FV_Eur_put << " ";
-        outfile << FV_Am_call << " ";
-        outfile << FV_Eur_call << " ";
+        outfile << setw(16) << S << " ";
+        outfile << setw(16) << FV_Am_put << " ";
+        outfile << setw(16) << FV_Eur_put << " ";
+        outfile << setw(16) << FV_Am_call << " ";
+        outfile << setw(16) << FV_Eur_call << " ";
         outfile << endl;
     }
     outfile.close();
-   
+    
     binomial_test();
     
     return 0;
 }
+
+
+
