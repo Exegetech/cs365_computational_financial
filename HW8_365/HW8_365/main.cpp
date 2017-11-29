@@ -304,7 +304,7 @@ int BinomialModel::FairValue(int n, Derivative * p_derivative, double S, double 
     V = V_tmp[0];
     
     // deallocate memory (if necessary)
-    Clear();
+    //Clear();
     return 0;
 }
 
