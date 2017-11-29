@@ -116,6 +116,8 @@ public:
     virtual ~Derivative() {}
     virtual double TerminalPayoff(double S) const { return 0; }
     virtual int ValuationTests(double S, double & V) const { return 0; }
+    virtual double TerminalPayoff_BinaryOption(double S) const { return 0; }
+    virtual int ValuationTests_BinaryOption(double S, double & V) const { return 0; }
     // data
     double r;
     double q;
@@ -166,6 +168,43 @@ int Option::ValuationTests(double S, double &V) const
     return 0;
 }
 
+//new BinaryOption Class
+class BinaryOption : public Derivative
+{
+public:
+    BinaryOption() { K = 0; isCall = false; isAmerican = false; }
+    virtual ~BinaryOption() {}
+    virtual double TerminalPayoff_BinaryOption(double S) const;
+    virtual int ValuationTests_BinaryOption(double S, double &V) const;
+    // data
+    double K;
+    bool isCall;
+    bool isAmerican;
+};
+double BinaryOption::TerminalPayoff_BinaryOption(double S) const
+{
+    // *** RETURN TERMINAL PAYOFF FOR PUT OR CALL OPTION ***
+    if(isCall){
+        if(S>=K){
+            return 1;
+        }else{
+            return 0;
+        }
+    }else{
+        if(S<K){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+    
+}
+int BinaryOption::ValuationTests_BinaryOption(double S, double &V) const
+{
+    // *** TEST IF THE VALUE OF V SHOULD BE UPDATED TO THE INTRINSIC VALUE ***
+    //only do European, no need for this American early exercise.
+    return 0;
+}
 
 class BinomialModel
 {
@@ -173,6 +212,7 @@ public:
     BinomialModel(int n);
     ~BinomialModel();
     int FairValue(int n, Derivative * p_derivative, double S, double t0, double & V);
+    int FairValue_BinaryOption(int n, Derivative * p_derivative, double S, double t0, double & V);
 private:
     // methods
     void Clear();
@@ -308,6 +348,84 @@ int BinomialModel::FairValue(int n, Derivative * p_derivative, double S, double 
     return 0;
 }
 
+int BinomialModel::FairValue_BinaryOption(int n, Derivative * p_derivative, double S, double t0, double & V)
+{
+    int rc = 0;
+    V = 0;
+    // validation checks
+    if(n<1 || S<=0 || p_derivative == NULL || p_derivative->T <= t0 || p_derivative->sigma <= 0.0 ){
+        return 1;
+    }
+    // declaration of local variables (I use S_tmp and V_tmp)
+    // declarated in constoctor.
+    double* S_tmp=NULL;
+    double* V_tmp=NULL;
+    // calculate parameters
+    double dt = (p_derivative->T - t0)/double(n);
+    double df = exp(-p_derivative->r*dt);
+    double growth = exp((p_derivative->r - p_derivative->q)*dt);
+    double u = exp(p_derivative->sigma*sqrt(dt));
+    double d = 1.0/u;
+    double p_prob = (growth - d)/(u-d);
+    double q_prob = 1.0 - p_prob;
+    
+    // more validation checks
+    if(p_prob<0.0 || p_prob>1.0){
+        return 1;
+    }
+    
+    // allocate memory if required (call Allocate(n))
+    Allocate(n);
+    for(int i=0; i<=n; ++i){
+        S_tmp = stock_nodes[i];
+        V_tmp = value_nodes[i];
+        for (int j = 0; j <= n; ++j) {
+            S_tmp[j] = 0;
+            V_tmp[j] = 0;
+        }
+    }
+    // set up stock prices in tree
+    S_tmp = stock_nodes[0];
+    S_tmp[0]=S;
+    
+    for (int i = 1; i <= n; ++i) {
+        double * prev = stock_nodes[i-1];
+        S_tmp = stock_nodes[i];
+        S_tmp[0] = prev[0] * d;
+        for (int j = 1; j <= n; ++j) {
+            S_tmp[j] = S_tmp[j-1]*u*u;
+        }
+    }
+    
+    // set terminal payoff (call virtual function in derivative class to calculate payoff)
+    int i = n;
+    S_tmp = stock_nodes[i];
+    V_tmp = value_nodes[i];
+    for (int j = 0; j <= n; ++j) {
+        V_tmp[j] = p_derivative->TerminalPayoff_BinaryOption(S_tmp[j]);
+    }
+    
+    // valuation loop (call virtual function in derivative class for valuation tests)
+    for (int i = n-1; i >= 0; --i) {
+        S_tmp = stock_nodes[i];
+        V_tmp = value_nodes[i];
+        double * V_next = value_nodes[i+1];
+        for (int j = 0; j <= i; ++j) {
+            V_tmp[j] = df*(p_prob*V_next[j+1] + q_prob*V_next[j]);
+            //not do anything, do not do test, BECAUSE it only for European Option.
+            p_derivative->ValuationTests_BinaryOption(S_tmp[j], V_tmp[j]); // VALUATION TESTS
+        }
+    }
+    
+    // derivative fair value
+    V_tmp = value_nodes[0];
+    V = V_tmp[0];
+    
+    // deallocate memory (if necessary)
+    //Clear();
+    return 0;
+}
+
 
 int binomial_test()
 {
@@ -392,6 +510,65 @@ int binomial_test()
     return 0;
 }
 
+int binomial_test_BinaryOption()
+{
+    int rc = 0;
+    
+    // output file
+    ofstream ofs;
+    ofs.open("BinaryOption_output.txt");
+    
+    double S = 200;
+    double K = 100;
+    double r = 0.01;
+    double q = 0;
+    double sigma = 0.5;
+    double T = 0.3;
+    double t0 = 0;
+    
+    BinaryOption Eur_put;
+    Eur_put.r = r;
+    Eur_put.q = q;
+    Eur_put.sigma = sigma;
+    Eur_put.T = T;
+    Eur_put.K = K;
+    Eur_put.isCall = false;
+    Eur_put.isAmerican = false;
+    
+    BinaryOption Eur_call;
+    Eur_call.r = r;
+    Eur_call.q = q;
+    Eur_call.sigma = sigma;
+    Eur_call.T = T;
+    Eur_call.K = K;
+    Eur_call.isCall = true;
+    Eur_call.isAmerican = false;
+    
+    double FV_Eur_put = 0;
+    double FV_Eur_call = 0;
+    
+    int n = 100;
+    
+    BinomialModel binom(n);
+    
+    double dS = 0.1;
+    int imax = 2000;
+    int i;
+    for (i = 1; i <= imax; ++i) {
+        S = i*dS;
+        rc = binom.FairValue_BinaryOption(n, &Eur_put, S, t0, FV_Eur_put);
+        rc = binom.FairValue_BinaryOption(n, &Eur_call, S, t0, FV_Eur_call);
+        
+        ofs << setw(16) << S << " ";
+        ofs << setw(16) << FV_Eur_put << " ";
+        ofs << setw(16) << FV_Eur_call << " ";
+        ofs << endl;
+    }
+    
+    ofs.close();
+    return 0;
+}
+
 int main(int argc, const char * argv[]) {
     /*
      //double check for code from hw7. result is same
@@ -446,6 +623,7 @@ int main(int argc, const char * argv[]) {
     outfile.close();
     
     binomial_test();
+    binomial_test_BinaryOption();
     
     return 0;
 }
