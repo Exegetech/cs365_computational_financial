@@ -198,16 +198,17 @@ BinomialModel::~BinomialModel()
 void BinomialModel::Clear()
 {
     // *** WRITE THE FUNCTION TO RELEASE ALLOCATED MEMORY ***
-    stock_nodes = NULL;
-    value_nodes = NULL;
-    /*
-     for (int i = 0; i <= n; ++i) {
-     delete [] stock_nodes[i];
-     delete [] value_nodes[i];
-     }
-     delete [] stock_nodes;
-     delete [] value_nodes;
-     */
+    if (n_tree <= 0) return;
+    
+    for(int i=0; i <= n_tree; i++){
+        delete[] stock_nodes[i];
+        delete[] value_nodes[i];
+    }
+    delete[] stock_nodes;
+    delete[] value_nodes;
+    stock_nodes= NULL;
+    value_nodes= NULL;
+    n_tree = 0;
 }
 
 int BinomialModel::Allocate(int n)
@@ -303,8 +304,7 @@ int BinomialModel::FairValue(int n, Derivative * p_derivative, double S, double 
     V = V_tmp[0];
     
     // deallocate memory (if necessary)
-    
-    
+    Clear();
     return 0;
 }
 
@@ -387,7 +387,7 @@ int binomial_test()
         ofs << setw(16) << FV_Eur_call << " ";
         ofs << endl;
     }
-    binom.~BinomialModel();
+    
     ofs.close();
     return 0;
 }
@@ -449,6 +449,5 @@ int main(int argc, const char * argv[]) {
     
     return 0;
 }
-
 
 
