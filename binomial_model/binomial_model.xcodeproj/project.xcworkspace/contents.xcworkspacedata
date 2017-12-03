@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:HW8_365.xcodeproj">
+      location = "self:binomial_model.xcodeproj">
    </FileRef>
 </Workspace>
