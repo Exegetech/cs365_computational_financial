@@ -1,5 +1,0 @@
-FV Eur put =          17.2327
-FV Eur call =          21.1147
-target =          19.1737
-imp vol Eur put =         0.552102  @num_iter: 14
-imp vol Eur call =          0.44808  @num_iter: 14
