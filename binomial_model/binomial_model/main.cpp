@@ -117,8 +117,8 @@ public:
     virtual ~Derivative() {}
     virtual double TerminalPayoff(double S) const { return 0; }
     virtual int ValuationTests(double S, double & V) const { return 0; }
-    virtual double TerminalPayoff_BinaryOption(double S) const { return 0; }
-    virtual int ValuationTests_BinaryOption(double S, double & V) const { return 0; }
+    //virtual double TerminalPayoff_BinaryOption(double S) const { return 0; }
+    //virtual int ValuationTests_BinaryOption(double S, double & V) const { return 0; }
     // data
     double r;
     double q;
@@ -175,14 +175,14 @@ class BinaryOption : public Derivative
 public:
     BinaryOption() { K = 0; isCall = false; isAmerican = false; }
     virtual ~BinaryOption() {}
-    virtual double TerminalPayoff_BinaryOption(double S) const;
-    virtual int ValuationTests_BinaryOption(double S, double &V) const;
+    virtual double TerminalPayoff(double S) const;
+    virtual int ValuationTests(double S, double &V) const;
     // data
     double K;
     bool isCall;
     bool isAmerican;
 };
-double BinaryOption::TerminalPayoff_BinaryOption(double S) const
+double BinaryOption::TerminalPayoff(double S) const
 {
     // *** RETURN TERMINAL PAYOFF FOR PUT OR CALL OPTION ***
     if(isCall){
@@ -200,7 +200,7 @@ double BinaryOption::TerminalPayoff_BinaryOption(double S) const
     }
     
 }
-int BinaryOption::ValuationTests_BinaryOption(double S, double &V) const
+int BinaryOption::ValuationTests(double S, double &V) const
 {
     // *** TEST IF THE VALUE OF V SHOULD BE UPDATED TO THE INTRINSIC VALUE ***
     //only do European, no need for this American early exercise.
@@ -213,11 +213,13 @@ public:
     BinomialModel(int n);
     ~BinomialModel();
     int FairValue(int n, Derivative * p_derivative, double S, double t0, double & V);
-    int FairValue_BinaryOption(int n, Derivative * p_derivative, double S, double t0, double & V);
+    
+    int ImpliedVolatility(int n, Derivative * p_derivative, double S, double t0, double target, double & implied_vol, int & num_iter);
 private:
     // methods
     void Clear();
     int Allocate(int n);
+    int ImpliedVolatilityPrivate(int n, Derivative * p_derivative, double S, double t0, double target, double & implied_vol, int & num_iter);
     // data
     int n_tree;
     double **stock_nodes;
@@ -349,84 +351,83 @@ int BinomialModel::FairValue(int n, Derivative * p_derivative, double S, double 
     return 0;
 }
 
-int BinomialModel::FairValue_BinaryOption(int n, Derivative * p_derivative, double S, double t0, double & V)
+int BinomialModel::ImpliedVolatility(int n, Derivative * p_derivative, double S, double t0,
+                                     double target, double & implied_vol, int & num_iter)
 {
     int rc = 0;
-    V = 0;
-    // validation checks
-    if(n<1 || S<=0 || p_derivative == NULL || p_derivative->T <= t0 || p_derivative->sigma <= 0.0 ){
-        return 1;
-    }
-    // declaration of local variables (I use S_tmp and V_tmp)
-    // declarated in constoctor.
-    double* S_tmp=NULL;
-    double* V_tmp=NULL;
-    // calculate parameters
-    double dt = (p_derivative->T - t0)/double(n);
-    double df = exp(-p_derivative->r*dt);
-    double growth = exp((p_derivative->r - p_derivative->q)*dt);
-    double u = exp(p_derivative->sigma*sqrt(dt));
-    double d = 1.0/u;
-    double p_prob = (growth - d)/(u-d);
-    double q_prob = 1.0 - p_prob;
-    
-    // more validation checks
-    if(p_prob<0.0 || p_prob>1.0){
-        return 1;
-    }
-    
-    // allocate memory if required (call Allocate(n))
-    Allocate(n);
-    for(int i=0; i<=n; ++i){
-        S_tmp = stock_nodes[i];
-        V_tmp = value_nodes[i];
-        for (int j = 0; j <= n; ++j) {
-            S_tmp[j] = 0;
-            V_tmp[j] = 0;
-        }
-    }
-    // set up stock prices in tree
-    S_tmp = stock_nodes[0];
-    S_tmp[0]=S;
-    
-    for (int i = 1; i <= n; ++i) {
-        double * prev = stock_nodes[i-1];
-        S_tmp = stock_nodes[i];
-        S_tmp[0] = prev[0] * d;
-        for (int j = 1; j <= n; ++j) {
-            S_tmp[j] = S_tmp[j-1]*u*u;
-        }
-    }
-    
-    // set terminal payoff (call virtual function in derivative class to calculate payoff)
-    int i = n;
-    S_tmp = stock_nodes[i];
-    V_tmp = value_nodes[i];
-    for (int j = 0; j <= n; ++j) {
-        V_tmp[j] = p_derivative->TerminalPayoff_BinaryOption(S_tmp[j]);
-    }
-    
-    // valuation loop (call virtual function in derivative class for valuation tests)
-    for (int i = n-1; i >= 0; --i) {
-        S_tmp = stock_nodes[i];
-        V_tmp = value_nodes[i];
-        double * V_next = value_nodes[i+1];
-        for (int j = 0; j <= i; ++j) {
-            V_tmp[j] = df*(p_prob*V_next[j+1] + q_prob*V_next[j]);
-            //not do anything, do not do test, BECAUSE it only for European Option.
-            p_derivative->ValuationTests_BinaryOption(S_tmp[j], V_tmp[j]); // VALUATION TESTS
-        }
-    }
-    
-    // derivative fair value
-    V_tmp = value_nodes[0];
-    V = V_tmp[0];
-    
-    // deallocate memory (if necessary)
-    //Clear();
-    return 0;
+    const double saved_vol = p_derivative->sigma;
+    rc = ImpliedVolatilityPrivate(n, p_derivative, S, t0, target, implied_vol, num_iter);
+    p_derivative->sigma = saved_vol;
+    return rc;
 }
 
+int BinomialModel::ImpliedVolatilityPrivate(int n, Derivative * p_derivative, double S, double t0, double target,
+                                            double & implied_vol, int & num_iter)
+{
+    const double tol = 1.0e-4;
+    const int max_iter = 100;
+    
+    implied_vol = 0;
+    num_iter = 0;
+    
+    double sigma_low = 0.01; // 1%
+    double sigma_high = 3.0; // 300%
+    double FV_low = 0;
+    double FV_high = 0;
+    double FV = 0;
+    
+    p_derivative->sigma = sigma_low;
+    FairValue(n, p_derivative, S, t0, FV_low);  //FV_low is 0 after computed!!!
+    double diff_FV_low = FV_low - target;
+    if (fabs(diff_FV_low) <= tol) {  //false
+        implied_vol = p_derivative->sigma;
+        return 0;
+    }
+    
+    p_derivative->sigma = sigma_high;
+    FairValue(n, p_derivative, S, t0, FV_high);//FV_high is 0 after computed!!!
+    double diff_FV_high = FV_high-target;
+    if (fabs(diff_FV_high) <= tol) {  //false
+        implied_vol = p_derivative->sigma;
+        return 0;
+    }
+    
+    if (diff_FV_low * diff_FV_high > 0) {  //break here
+        implied_vol = 0;
+        return 1; // fail
+    }
+    
+    for (int i = 0; i < max_iter; ++i) {
+        
+        p_derivative->sigma = 0.5*(sigma_low + sigma_high);
+        FairValue(n, p_derivative, S, t0, FV);
+        double diff_FV = FV - target;
+        
+        if(abs(diff_FV)<=tol){
+            implied_vol = p_derivative->sigma;
+            num_iter = i;
+            return 0;
+        }else if(diff_FV_low * diff_FV >0){
+            sigma_low =p_derivative->sigma;
+        }else{
+            sigma_high=p_derivative->sigma;
+        }
+        
+        if(abs(sigma_low - sigma_high) <= tol){
+            implied_vol = p_derivative->sigma;
+            num_iter = i;
+            return 0;
+        }
+        
+        if(i==(max_iter-1)){
+            num_iter=max_iter;
+            implied_vol=0;
+            return 1;
+        }
+    }
+    
+    return 0;
+}
 
 int binomial_test()
 {
@@ -557,8 +558,8 @@ int binomial_test_BinaryOption()
     int i;
     for (i = 1; i <= imax; ++i) {
         S = i*dS;
-        rc = binom.FairValue_BinaryOption(n, &Eur_put, S, t0, FV_Eur_put);
-        rc = binom.FairValue_BinaryOption(n, &Eur_call, S, t0, FV_Eur_call);
+        rc = binom.FairValue(n, &Eur_put, S, t0, FV_Eur_put);
+        rc = binom.FairValue(n, &Eur_call, S, t0, FV_Eur_call);
         
         ofs << setw(16) << S << " ";
         ofs << setw(16) << FV_Eur_put << " ";
@@ -566,6 +567,65 @@ int binomial_test_BinaryOption()
         ofs << endl;
     }
     
+    ofs.close();
+    return 0;
+}
+
+int binomial_test_ImpliedVolatility()
+{
+    int rc = 0;
+    
+    // output file
+    ofstream ofs;
+    ofs.open("ImpliedVolatility_output.txt");
+    
+    double S = 100;
+    double K = 100;
+    double r = 0.05;
+    double q = 0.01;
+    double sigma = 0.5;
+    double T = 1.0;
+    double t0 = 0;
+    
+    Option Eur_put;
+    Eur_put.r = r;
+    Eur_put.q = q;
+    Eur_put.sigma = sigma;
+    Eur_put.T = T;
+    Eur_put.K = K;
+    Eur_put.isCall = false;
+    Eur_put.isAmerican = false;
+    
+    Option Eur_call;
+    Eur_call.r = r;
+    Eur_call.q = q;
+    Eur_call.sigma = sigma;
+    Eur_call.T = T;
+    Eur_call.K = K;
+    Eur_call.isCall = true;
+    Eur_call.isAmerican = false;
+    
+    double FV_Eur_put = 0;
+    double FV_Eur_call = 0;
+    
+    int n = 100;
+    
+    BinomialModel binom(n);
+    
+    double target = 0;
+    double impliedVolatility; //doesn't matter with value
+    int num_iter; //does not matter with value.
+    rc = binom.FairValue(n, &Eur_put, S, t0, FV_Eur_put);
+    ofs << "FV Eur put = " << setw(16) << FV_Eur_put << std::endl;
+    rc = binom.FairValue(n, &Eur_call, S, t0, FV_Eur_call);
+    ofs << "FV Eur call = " << setw(16) << FV_Eur_call << std::endl;
+    // target
+    target = (FV_Eur_put + FV_Eur_call) * 0.5; // some nonzero number
+    ofs << "target = " << setw(16) << target << std::endl;
+    rc = binom.ImpliedVolatility(n, &Eur_put, S, t0, target, impliedVolatility, num_iter);
+    ofs << "imp vol Eur put = " << setw(16) <<impliedVolatility << "  @num_iter: " << num_iter << std::endl;
+    rc = binom.ImpliedVolatility(n, &Eur_call, S, t0, target, impliedVolatility, num_iter);
+    ofs << "imp vol Eur call = " << setw(16) <<impliedVolatility << "  @num_iter: " << num_iter << std::endl;
     ofs.close();
     return 0;
 }
@@ -625,8 +685,9 @@ int main(int argc, const char * argv[]) {
     
     binomial_test();
     binomial_test_BinaryOption();
-    
+    binomial_test_ImpliedVolatility();
     return 0;
 }
+
 
 
