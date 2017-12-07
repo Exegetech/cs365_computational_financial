@@ -1,0 +1,3 @@
+The theoretical fair value of the bond is 96.99 if yield of the bond is 5%.
+
+The yield of the bond is 4.18% if market price of the bond is 100.
