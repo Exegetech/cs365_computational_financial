@@ -75,8 +75,8 @@ int yield_from_price(double F, double c[], int n, double B_market, double tol, i
 
 void compute_Question1(double &y){
     ofstream outfile;
-    outfile.open("Solution_for_Q1.txt");
-    outfile<<"Student ID: 23083576 --> array of{2,3,0,8,3,5,7,6}\n\n";
+    outfile.open("Solution_145.txt");
+    outfile<<"ID: 23083576 --> array of{2,3,0,8,3,5,7,6}\n\n";
     double c[8] = {2,3,0,8,3,5,7,6};
     double F = 100;
     y = 5;
@@ -88,8 +88,7 @@ void compute_Question1(double &y){
     outfile<<"The theoretical fair value of the bond is "<<fixed<<setprecision(2)<<B<<" if yield of the bond is 5%.\n\n";
     double B_market = 100;
     yield_from_price(F, c, n, B_market, tol, max_iter, y);
-    outfile<<"The yield of the bond is "<<fixed<<setprecision(2)<<y<<"% if market price of the bond is 100.\n\n";
-    outfile<<"\n---------------------------Separated Line-----------------------------------\n\n";
+    outfile<<"The yield of the bond is "<<fixed<<setprecision(2)<<y<<"% if market price of the bond is 100.\n";
     outfile.close();
 }
 
@@ -392,29 +391,17 @@ public:
 
 double straddle::TerminalPayoff(double S) const
 {
-    double temp =0.0;
-    if(isCall){
-        if(S>K){
-            temp+=S-K;
-        }
-    }else{
-        if(S<K){
-            temp+=K-S;
-        }
-    }
-    return temp;
+    return abs(S-K);
 }
 
 int straddle::ValuationTest(double S, double &V) const
 {
     if(isAmerican){
-        double temp =0.0;
         if(isCall){
-            temp += max(V, max(S-K, 0.0));
+            return V=max(V, max(S-K, 0.0));
         }else{
-            temp += max(V, max(K-S, 0.0));
+            return V=max(V, max(K-S, 0.0));
         }
-        return temp;
     }
     
     return 0;
@@ -457,6 +444,7 @@ int BinaryOption::ValuationTests(double S, double &V) const
     return 0;
 }
 
+//Question 7
 class UpOutBarrierCallOption: public Derivative
 {
 public:
@@ -488,23 +476,28 @@ double UpOutBarrierCallOption::TerminalPayoff(double S) const
 
 int UpOutBarrierCallOption::ValuationTests(double S, double &V) const
 {
-    if(isAmerican){
-        double V_barrier = B-K;
-        if(K<S && S<B && V_barrier<(S-K)){
-            return V_barrier;
+    double V_barrier;
+    if(S>B){
+        V_barrier = B - K;
+        if(isAmerican){
+            if(K<S && S<B && V_barrier<(S-K)){
+                V= max(V, S-K);
+            }
+        }else{
+            V= V_barrier;
         }
     }
     return 0;
 }
 
-int Question4_test(){
+int Question4_test()
+{
     int rc = 0;
     
     // output file
     ofstream ofs;
-    ofs.open("Solution_for_Q4.txt");
-    
-    //srand((unsigned)time(NULL));
+    ofs.open("Solution_145.txt", ios_base::app);
+    ofs<<"Question 4: \n";
     
     double S = 590;
     double K = 150;
@@ -513,17 +506,6 @@ int Question4_test(){
     double sigma = 0.8;
     double T = 2.0;
     double t0 = 1.3;
-    /*
-    double S = rand();
-    double K = rand();
-    double r = (double)(rand()%101)/101;
-    double q = (double)(rand()%101)/101;
-    double sigma = (double)(rand()%101)/101;
-    double T = (double)(rand()%101)/101;
-    double t0 = (double)(rand()%101)/101;
-    
-    ofs<<S<<" "<<K<<" "<<r<<" "<<q<<" "<<sigma<<" "<<T<<" "<<t0<<endl;
-    */
     
     Option Eur_put;
     Eur_put.r = r;
@@ -604,14 +586,7 @@ int Question4_test(){
     double e2 = exp(-r*dt);
     double V_Ke = K * e2;
     bool check_result=false;
-    /*
-    ofs<<"Computed: \n";
-    ofs<<"tol: "<<tol;
-    ofs<<"\nc-p: "<<V_c_sub_p;
-    ofs<<"\nC-P: "<<V_C_sub_P;
-    ofs<<"\nS*e~: "<<V_Se;
-    ofs<<"\nK*e~: "<<e2<<endl;
-    */
+
     ofs<<"Test--> 4.1: \n\n";
     if(abs((V_c_sub_p)-(V_Se-V_Ke)) <= tol){
         check_result = true;
@@ -636,9 +611,248 @@ int Question4_test(){
     else{
         check_result = false;
     }
-    ofs<<"Result for passing equation 4.3 is "<<check_result<<".\n\n";
+    ofs<<"Result for passing equation 4.3 is "<<check_result<<".\n";
+    ofs<<"=================================================\n\n";
     
     ofs.close();
+    return 0;
+}
+
+int Question5_test()
+{
+    int rc = 0;
+    
+    // output file
+    ofstream ofs;
+    ofs.open("Solution_145.txt", ios_base::app);
+    ofs<<"Question 5: \n";
+    
+    double S = 100;
+    double K = 100;
+    double r = 0.05;
+    double q = 0.01;
+    double sigma = 0.5;
+    double T = 1.0;
+    double t0 = 0;
+    
+    Option Eur_put;
+    Eur_put.r = r;
+    Eur_put.q = q;
+    Eur_put.sigma = sigma;
+    Eur_put.T = T;
+    Eur_put.K = K;
+    Eur_put.isCall = false;
+    Eur_put.isAmerican = false;
+    
+    Option Am_put;
+    Am_put.r = r;
+    Am_put.q = q;
+    Am_put.sigma = sigma;
+    Am_put.T = T;
+    Am_put.K = K;
+    Am_put.isCall = false;
+    Am_put.isAmerican = true;
+    
+    Option Eur_call;
+    Eur_call.r = r;
+    Eur_call.q = q;
+    Eur_call.sigma = sigma;
+    Eur_call.T = T;
+    Eur_call.K = K;
+    Eur_call.isCall = true;
+    Eur_call.isAmerican = false;
+    
+    Option Am_call;
+    Am_call.r = r;
+    Am_call.q = q;
+    Am_call.sigma = sigma;
+    Am_call.T = T;
+    Am_call.K = K;
+    Am_call.isCall = true;
+    Am_call.isAmerican = true;
+    
+    straddle str_Eur;
+    str_Eur.r = r;
+    str_Eur.q = q;
+    str_Eur.sigma = sigma;
+    str_Eur.T = T;
+    str_Eur.K = K;
+    str_Eur.isCall = false;
+    str_Eur.isAmerican = false;
+    
+    straddle str_Am;
+    str_Am.r = r;
+    str_Am.q = q;
+    str_Am.sigma = sigma;
+    str_Am.T = T;
+    str_Am.K = K;
+    str_Am.isCall = false;
+    str_Am.isAmerican = true;
+    
+    double FV_Am_put = 0;
+    double FV_Eur_put = 0;
+    double FV_Am_call = 0;
+    double FV_Eur_call = 0;
+    double FV_str_Eur = 0;
+    double FV_str_Am = 0;
+    
+    int n = 100;
+    
+    BinomialModel binom(n);
+    double dS = 0.1;
+    int imax = 2000;
+    for (int i = 1; i <= imax; ++i) {
+        S = i*dS;
+        rc = binom.FairValue(n, &Am_put, S, t0, FV_Am_put);
+        rc = binom.FairValue(n, &Eur_put, S, t0, FV_Eur_put);
+        rc = binom.FairValue(n, &Am_call, S, t0, FV_Am_call);
+        rc = binom.FairValue(n, &Eur_call, S, t0, FV_Eur_call);
+        rc = binom.FairValue(n, &str_Eur, S, t0, FV_str_Eur);
+        rc = binom.FairValue(n, &str_Am, S, t0, FV_str_Am);
+    }
+    ofs << setw(16) << "S" << " ";
+    ofs << setw(16) << "FV_Am_put" << " ";
+    ofs << setw(16) << "FV_Eur_put" << " ";
+    ofs << setw(16) << "FV_Am_call" << " ";
+    ofs << setw(16) << "FV_Eur_call" << " ";
+    ofs << setw(16) << "FV_str_Eur" <<" ";
+    ofs << setw(16) << "FV_str_Am" <<" ";
+    ofs << endl;
+    ofs << setw(16) << S << " ";
+    ofs << setw(16) << FV_Am_put << " ";
+    ofs << setw(16) << FV_Eur_put << " ";
+    ofs << setw(16) << FV_Am_call << " ";
+    ofs << setw(16) << FV_Eur_call << " ";
+    ofs << setw(16) << FV_str_Eur << " ";
+    ofs << setw(16) << FV_str_Am << " ";
+    ofs << endl;
+    ofs <<"---------------------------Separated Line-----------------------------------\n\n";
+    
+    ofs << "Test for Equation 5.1: \n\n";
+    
+    double tol = 1.0e-6;
+    bool passORnot;
+    if(abs(FV_str_Eur-(FV_Eur_put+FV_Eur_call)) <= tol){
+        passORnot = true;
+    }else{
+        passORnot = false;
+    }
+    ofs<<"For equation 5.1, pass or not?\n";
+    ofs<<"Result for equation 5.1 is : "<<boolalpha<<passORnot<<".\n\n";
+    
+    if( (FV_str_Am >= (abs(S-K)-tol)) && (FV_str_Am <= (FV_Am_put+FV_Am_call+tol)) ){
+        passORnot = true;
+    }else{
+        passORnot = false;
+    }
+    ofs<<"For equation 5.2, pass or not?\n";
+    ofs<<"Result for equation 5.2 is : "<<boolalpha<<passORnot<<".\n\n";
+    ofs<<"=====================================================================\n\n";
+    return 0; 
+}
+
+int Question6_solution(){
+    int rc = 0;
+    
+    // output file
+    ofstream ofs;
+    ofs.open("Solution_6.txt");
+    ofs<<"Solution for Question 6 Using sigma from 0.1 to 1:\n\n";
+    ofs << setw(16) << "sigma" << " ";
+    ofs << setw(16) << "FV_Eur_call" << " ";
+    ofs << setw(16) << "FV_Eur_put" << " ";
+    ofs<<"------------------------------------------------------\n";
+    
+    double S = 90;
+    double K = 100;
+    double r = 0.0417509; //full result from question 1.
+    double q = 0.02;
+    double sigma = 1.0;
+    double T = 1.0;
+    double t0 = 0;
+    
+    for(double m=0.1; m<=sigma; m+=0.1){
+        BinaryOption Eur_put;
+        Eur_put.r = r;
+        Eur_put.q = q;
+        Eur_put.sigma = m;
+        Eur_put.T = T;
+        Eur_put.K = K;
+        Eur_put.isCall = false;
+        Eur_put.isAmerican = false;
+    
+        BinaryOption Eur_call;
+        Eur_call.r = r;
+        Eur_call.q = q;
+        Eur_call.sigma = m;
+        Eur_call.T = T;
+        Eur_call.K = K;
+        Eur_call.isCall = true;
+        Eur_call.isAmerican = false;
+    
+        double FV_Eur_put = 0;
+        double FV_Eur_call = 0;
+    
+        int n = 1000;
+    
+        BinomialModel binom(n);
+    
+        rc = binom.FairValue(n, &Eur_put, S, t0, FV_Eur_put);
+        rc = binom.FairValue(n, &Eur_call, S, t0, FV_Eur_call);
+    
+        ofs << setw(16) << m << " ";
+        ofs << setw(16) << fixed<<setprecision(2)<<FV_Eur_call << " ";
+        ofs << setw(16) << fixed<<setprecision(2)<<FV_Eur_put << " ";
+        ofs << endl;
+    }
+    
+    ofs.close();
+    
+    return 0;
+}
+
+int Question7_solution(){
+    int rc = 0;
+    
+    // output file
+    ofstream ofs;
+    ofs.open("Solution_7.txt");
+    ofs<<"Question 7 solution: \n";
+    
+    //id: 23083576
+    double value_S1 = 0.2308;
+    double value_S2 = -0.3576;
+    
+    ofs<<"Day 0: \n";
+    
+    double t0 = 0;
+    double S0 = 90;
+    double M0 = 5;
+    
+    UpOutBarrierCallOption barrier_Am_call;
+    barrier_Am_call.K = 100;
+    barrier_Am_call.B = 130;
+    barrier_Am_call.T = 0.5;
+    //barrier_Am_call.sigma = 0.5;
+    barrier_Am_call.r = 0.0;
+    barrier_Am_call.q = 0.0;
+    barrier_Am_call.isCall = true;
+    barrier_Am_call.isAmerican = true;
+    
+    double FV_Am_call=0;
+    int n = 1000;
+    
+    BinomialModel binom(n);
+    
+    double impliedVolatility;
+    int num_iter;
+    
+    rc = binom.ImpliedVolatility(n, &barrier_Am_call, S0, t0, M0, impliedVolatility, num_iter);
+    ofs<<"imp vol Am Call = "<<setw(16)<<impliedVolatility<<". num iter = "<<setw(16)<<num_iter<<endl;
+    
+    
+    ofs.close();
+    
     return 0;
 }
 
@@ -647,10 +861,17 @@ int main(int argc, const char * argv[]) {
     double yield;
     compute_Question1(yield);
     ofstream of;
-    of.open("Solution_for_Q1.txt", ios_base::app);
-    of<<"yield without rounding to 2 decimal is "<<yield<<"\n";
+    of.open("Solution_145.txt", ios_base::app);
+    of<<"yield without rounding to 2 decimal is "<<0.01*yield<<"\n";
+    of<<"=================================================\n\n";
     of.close();
     
     Question4_test();
+    
+    Question5_test();
+    
+    Question6_solution();
+    
+    Question7_solution();
     return 0;
 }

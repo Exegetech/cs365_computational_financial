@@ -1,0 +1,3 @@
+Question 7 solution: 
+Day 0: 
+imp vol Am Call =                0. num iter =                0
