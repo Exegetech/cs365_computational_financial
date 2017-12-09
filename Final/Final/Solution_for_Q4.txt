@@ -1,0 +1,18 @@
+               S        FV_Am_put       FV_Eur_put       FV_Am_call      FV_Eur_call 
+             200          21.2354          20.6214          77.2702          77.1844 
+---------------------------Separated Line-----------------------------------
+
+Test for Equation 4.1: 
+
+Test--> 4.1: 
+
+Result for passing equation 4.1 is true.
+
+Test--> 4.2: 
+
+Result for passing equation 4.2 is true.
+
+Test--> 4.3: 
+
+Result for passing equation 4.3 is true.
+
