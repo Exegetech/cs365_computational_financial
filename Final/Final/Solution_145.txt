@@ -8,7 +8,7 @@ yield without rounding to 2 decimal is 0.0417509
 
 Question 4: 
                S        FV_Am_put       FV_Eur_put       FV_Am_call      FV_Eur_call 
-             200          21.2354          20.6214          77.2702          77.1844 
+             200           17.644          17.3516          65.2355          63.0482 
 ---------------------------Separated Line-----------------------------------
 
 Test for Equation 4.1: 
@@ -28,7 +28,7 @@ Result for passing equation 4.3 is true.
 
 Question 5: 
                S        FV_Am_put       FV_Eur_put       FV_Am_call      FV_Eur_call       FV_str_Eur        FV_str_Am 
-             200          2.13055            2.099           104.99          104.986          107.085          107.085 
+             200          17.6612          17.3785          65.2612          63.0751          80.4536          80.4536 
 ---------------------------Separated Line-----------------------------------
 
 Test for Equation 5.1: 

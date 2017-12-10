@@ -142,6 +142,7 @@ BinomialModel::~BinomialModel()
 {
     Clear();
 }
+
 void BinomialModel::Clear()
 {
     // *** WRITE THE FUNCTION TO RELEASE ALLOCATED MEMORY ***
@@ -461,30 +462,29 @@ public:
 
 double UpOutBarrierCallOption::TerminalPayoff(double S) const
 {
-    //K<B , and S depends.
-    if(K<=S && S<B){
-        return S-K;
-    }
-    if(S>=B){
-        return B-K;
-    }
-    if(S<K){
-        return 0;
+    if(isCall){ //for question, it is american call
+        if(S < K){
+            return 0;
+        }
+        if(K<=S && S<B){
+            return S-K;
+        }
+        if(S>=B){
+            return B-K;
+        }
     }
     return 0;
 }
 
 int UpOutBarrierCallOption::ValuationTests(double S, double &V) const
 {
-    double V_barrier;
-    if(S>B){
-        V_barrier = B - K;
+    double V_barrier = B-K;
+    if(S >= B){
+        V= V_barrier;
         if(isAmerican){
             if(K<S && S<B && V_barrier<(S-K)){
                 V= max(V, S-K);
             }
-        }else{
-            V= V_barrier;
         }
     }
     return 0;
@@ -499,13 +499,13 @@ int Question4_test()
     ofs.open("Solution_145.txt", ios_base::app);
     ofs<<"Question 4: \n";
     
-    double S = 590;
+    double S = 150;
     double K = 150;
-    double r = 0.12;
-    double q = 0.04;
-    double sigma = 0.8;
-    double T = 2.0;
-    double t0 = 1.3;
+    double r = 0.1;
+    double q = 0.1;
+    double sigma = 0.6;
+    double T = 1;
+    double t0 = 0.1;
     
     Option Eur_put;
     Eur_put.r = r;
@@ -548,7 +548,7 @@ int Question4_test()
     double FV_Am_call = 0;
     double FV_Eur_call = 0;
     
-    int n = 100;
+    int n = 50;
     
     BinomialModel binom(n);
     
@@ -627,13 +627,13 @@ int Question5_test()
     ofs.open("Solution_145.txt", ios_base::app);
     ofs<<"Question 5: \n";
     
-    double S = 100;
-    double K = 100;
-    double r = 0.05;
-    double q = 0.01;
-    double sigma = 0.5;
-    double T = 1.0;
-    double t0 = 0;
+    double S = 150;
+    double K = 150;
+    double r = 0.1;
+    double q = 0.1;
+    double sigma = 0.6;
+    double T = 1;
+    double t0 = 0.1;
     
     Option Eur_put;
     Eur_put.r = r;
@@ -818,16 +818,14 @@ int Question7_solution(){
     ofstream ofs;
     ofs.open("Solution_7.txt");
     ofs<<"Question 7 solution: \n";
-    
+  
     //id: 23083576
     double value_S1 = 0.2308;
     double value_S2 = -0.3576;
     
-    ofs<<"Day 0: \n";
+    double money =0;
     
-    double t0 = 0;
-    double S0 = 90;
-    double M0 = 5;
+    ofs<<"Day 0: \n";
     
     UpOutBarrierCallOption barrier_Am_call;
     barrier_Am_call.K = 100;
@@ -839,17 +837,74 @@ int Question7_solution(){
     barrier_Am_call.isCall = true;
     barrier_Am_call.isAmerican = true;
     
-    double FV_Am_call=0;
+    double t0 = 0;
+    double S0 = 90;
+    double M0 = 5;
     int n = 1000;
+    double target = 0;
     
     BinomialModel binom(n);
     
     double impliedVolatility;
     int num_iter;
     
-    rc = binom.ImpliedVolatility(n, &barrier_Am_call, S0, t0, M0, impliedVolatility, num_iter);
-    ofs<<"imp vol Am Call = "<<setw(16)<<impliedVolatility<<". num iter = "<<setw(16)<<num_iter<<endl;
+    rc = binom.ImpliedVolatility(n, &barrier_Am_call, S0, t0, target, impliedVolatility, num_iter);
+    ofs<<"imp vol Am Call = "<<fixed<<setprecision(4)<<impliedVolatility<<endl;
+    barrier_Am_call.sigma = impliedVolatility; //sigam = implied volatility
     
+    double FV_Am_call_1;  //S=S0+1
+    double FV_Am_call_2;  //S=S0-1
+    double delta_0;   // delta = (U(FV_Am_call_1) - U(FV_Am_call_2))/2
+    rc = binom.FairValue(n, &barrier_Am_call, S0+1, t0, FV_Am_call_1);
+    rc = binom.FairValue(n, &barrier_Am_call, S0-1, t0, FV_Am_call_2);
+    delta_0 = ( FV_Am_call_1 - FV_Am_call_2 ) * 0.5;
+    ofs<<"S0+1, fair value is "<<FV_Am_call_1<<endl;
+    ofs<<"S0-1, fair value is "<<FV_Am_call_2<<endl;
+    ofs<<"delta of the barrier option using volatility_0 of "<<barrier_Am_call.sigma<<" is "<<delta_0<<endl;
+    
+    money = delta_0 * S0 - M0;
+    ofs<<"The value of Money at day 0 is "<<fixed<<setprecision(2)<<money<<endl;
+    ofs<<"Day 1: \n";
+    
+    double S1 = S0 + value_S1;
+    double M1 = 5.2;
+    t0 = 0.01;
+    rc = binom.ImpliedVolatility(n, &barrier_Am_call, S1, t0, target, impliedVolatility, num_iter);
+    ofs<<"imp vol Am Call = "<<fixed<<setprecision(4)<<impliedVolatility<<endl;
+    barrier_Am_call.sigma = impliedVolatility; //sigam = implied volatility
+    double delta_1;
+    double money_1;
+    rc = binom.FairValue(n, &barrier_Am_call, S1+1, t0, FV_Am_call_1);
+    rc = binom.FairValue(n, &barrier_Am_call, S1-1, t0, FV_Am_call_2);
+    delta_1 = ( FV_Am_call_1 - FV_Am_call_2 ) * 0.5;
+    ofs<<"S1+1, fair value is "<<FV_Am_call_1<<endl;
+    ofs<<"S1-1, fair value is "<<FV_Am_call_2<<endl;
+    ofs<<"delta of the barrier option using volatility_0 of "<<barrier_Am_call.sigma<<" is "<<delta_1<<endl;
+    money_1= (delta_1 - delta_0) * S1 + money;
+    ofs<<"The value of Money at day 0 is "<<fixed<<setprecision(2)<<money_1<<endl;
+    
+    ofs<<"Day 2: \n";
+    
+    double S2 = S1 + value_S2;
+    double M2 = 5.15;
+    t0 = 0.02;
+    rc = binom.ImpliedVolatility(n, &barrier_Am_call, S2, t0, target, impliedVolatility, num_iter);
+    ofs<<"imp vol Am Call = "<<fixed<<setprecision(4)<<impliedVolatility<<endl;
+    barrier_Am_call.sigma = impliedVolatility; //sigam = implied volatility
+    double delta_2;
+    double money_2;
+    rc = binom.FairValue(n, &barrier_Am_call, S2+1, t0, FV_Am_call_1);
+    rc = binom.FairValue(n, &barrier_Am_call, S2-1, t0, FV_Am_call_2);
+    delta_2 = ( FV_Am_call_1 - FV_Am_call_2 ) * 0.5;
+    ofs<<"S2+1, fair value is "<<FV_Am_call_1<<endl;
+    ofs<<"S2-1, fair value is "<<FV_Am_call_2<<endl;
+    ofs<<"delta of the barrier option using volatility_0 of "<<barrier_Am_call.sigma<<" is "<<delta_2<<endl;
+    money_2= (delta_2 - delta_1) * S2 + money_1;
+    ofs<<"The value of Money at day 0 is "<<fixed<<setprecision(2)<<money_2<<endl;
+    ofs<<"Close out: \n";
+    
+    double profit = money_2 + M2 - delta_2*S2;
+    ofs<<"The total profit is "<<fixed<<setprecision(2)<<profit<<endl;
     
     ofs.close();
     
