@@ -475,8 +475,7 @@ double UpOutBarrierCallOption::TerminalPayoff(double S) const
 
 int UpOutBarrierCallOption::ValuationTests(double S, double &V) const
 {
-    /*
-     //if I use this part, volaility is 0.3441 not 0.3454 at day 0.
+    
     double V_barrier = B-K;;
     if(S>=B){ //European and American option, check and updater it.
         V = V_barrier;
@@ -488,17 +487,7 @@ int UpOutBarrierCallOption::ValuationTests(double S, double &V) const
             }
         }
     }
-    */
-    double V_barrier = B-K;
-    if(S>=B){ //European and American option, check and updater it.
-        V = V_barrier;
-    }
-    if(isAmerican){
-        if(isCall && S>K && S<B && V_barrier<S-K){
-            V_barrier = S-K;
-            V= V_barrier;
-        }
-    }
+    
     
     return 0;
 }
@@ -859,7 +848,7 @@ int Question7_solution(){
     double S0 = 90;
     double M0 = 5;
     int n = 1000;
-    double target = 5;
+    double target = M0;
     
     BinomialModel binom(n);
     
@@ -948,5 +937,6 @@ int main(int argc, const char * argv[]) {
     Question6_solution();
     
     Question7_solution();
+    
     return 0;
 }
