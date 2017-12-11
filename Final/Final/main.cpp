@@ -269,7 +269,7 @@ int BinomialModel::ImpliedVolatility(int n, Derivative * p_derivative, double S,
 int BinomialModel::ImpliedVolatilityPrivate(int n, Derivative * p_derivative, double S, double t0, double target,
                                             double & implied_vol, int & num_iter)
 {
-    const double tol = 1.0e-6;
+    const double tol = 1.0e-4;
     const int max_iter = 100;
     
     implied_vol = 0;
@@ -397,12 +397,9 @@ double straddle::TerminalPayoff(double S) const
 
 int straddle::ValuationTest(double S, double &V) const
 {
+   
     if(isAmerican){
-        if(isCall){
-            return V=max(V, max(S-K, 0.0));
-        }else{
-            return V=max(V, max(K-S, 0.0));
-        }
+        V= abs(S-K);
     }
     
     return 0;
@@ -481,10 +478,10 @@ int UpOutBarrierCallOption::ValuationTests(double S, double &V) const
     double V_barrier = B-K;
     if(S >= B){
         V= V_barrier;
-        if(isAmerican){
-            if(K<S && S<B && V_barrier<(S-K)){
-                V= max(V, S-K);
-            }
+    }
+    if(isAmerican){
+        if(K<S && S<B && V_barrier<(S-K)){
+            V= max(V, S-K);
         }
     }
     return 0;
@@ -841,7 +838,7 @@ int Question7_solution(){
     double S0 = 90;
     double M0 = 5;
     int n = 1000;
-    double target = 0;
+    double target = 5;
     
     BinomialModel binom(n);
     
@@ -869,6 +866,7 @@ int Question7_solution(){
     double S1 = S0 + value_S1;
     double M1 = 5.2;
     t0 = 0.01;
+    target = M1;
     rc = binom.ImpliedVolatility(n, &barrier_Am_call, S1, t0, target, impliedVolatility, num_iter);
     ofs<<"imp vol Am Call = "<<fixed<<setprecision(4)<<impliedVolatility<<endl;
     barrier_Am_call.sigma = impliedVolatility; //sigam = implied volatility
@@ -881,13 +879,14 @@ int Question7_solution(){
     ofs<<"S1-1, fair value is "<<FV_Am_call_2<<endl;
     ofs<<"delta of the barrier option using volatility_0 of "<<barrier_Am_call.sigma<<" is "<<delta_1<<endl;
     money_1= (delta_1 - delta_0) * S1 + money;
-    ofs<<"The value of Money at day 0 is "<<fixed<<setprecision(2)<<money_1<<endl;
+    ofs<<"The value of Money at day 1 is "<<fixed<<setprecision(2)<<money_1<<endl;
     
     ofs<<"Day 2: \n";
     
     double S2 = S1 + value_S2;
     double M2 = 5.15;
     t0 = 0.02;
+    target = M2;
     rc = binom.ImpliedVolatility(n, &barrier_Am_call, S2, t0, target, impliedVolatility, num_iter);
     ofs<<"imp vol Am Call = "<<fixed<<setprecision(4)<<impliedVolatility<<endl;
     barrier_Am_call.sigma = impliedVolatility; //sigam = implied volatility
@@ -900,7 +899,7 @@ int Question7_solution(){
     ofs<<"S2-1, fair value is "<<FV_Am_call_2<<endl;
     ofs<<"delta of the barrier option using volatility_0 of "<<barrier_Am_call.sigma<<" is "<<delta_2<<endl;
     money_2= (delta_2 - delta_1) * S2 + money_1;
-    ofs<<"The value of Money at day 0 is "<<fixed<<setprecision(2)<<money_2<<endl;
+    ofs<<"The value of Money at day 2 is "<<fixed<<setprecision(2)<<money_2<<endl;
     ofs<<"Close out: \n";
     
     double profit = money_2 + M2 - delta_2*S2;

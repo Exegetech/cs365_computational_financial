@@ -1,21 +1,21 @@
 Question 7 solution: 
 Day 0: 
-imp vol Am Call = 0.0100
-S0+1, fair value is 0.0000
-S0-1, fair value is 0.0000
-delta of the barrier option using volatility_0 of 0.0100 is 0.0000
-The value of Money at day 0 is -5.00
+imp vol Am Call = 0.3454
+S0+1, fair value is 5.3321
+S0-1, fair value is 4.5924
+delta of the barrier option using volatility_0 of 0.3454 is 0.3698
+The value of Money at day 0 is 28.28
 Day 1: 
-imp vol Am Call = 0.0100
-S1+1, fair value is 0.0000
-S1-1, fair value is 0.0000
-delta of the barrier option using volatility_0 of 0.0100 is 0.0000
-The value of Money at day 0 is -5.00
+imp vol Am Call = 0.3538
+S1+1, fair value is 5.5360
+S1-1, fair value is 4.7780
+delta of the barrier option using volatility_0 of 0.3538 is 0.3790
+The value of Money at day 1 is 29.11
 Day 2: 
-imp vol Am Call = 0.0100
-S2+1, fair value is 0.0000
-S2-1, fair value is 0.0000
-delta of the barrier option using volatility_0 of 0.0100 is 0.0000
-The value of Money at day 0 is -5.00
+imp vol Am Call = 0.3610
+S2+1, fair value is 5.4817
+S2-1, fair value is 4.7316
+delta of the barrier option using volatility_0 of 0.3610 is 0.3751
+The value of Money at day 2 is 28.76
 Close out: 
-The total profit is 0.15
+The total profit is 0.20
