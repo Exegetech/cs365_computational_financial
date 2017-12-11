@@ -475,15 +475,31 @@ double UpOutBarrierCallOption::TerminalPayoff(double S) const
 
 int UpOutBarrierCallOption::ValuationTests(double S, double &V) const
 {
-    double V_barrier = B-K;
-    if(S >= B){
-        V= V_barrier;
+    /*
+     //if I use this part, volaility is 0.3441 not 0.3454 at day 0.
+    double V_barrier = B-K;;
+    if(S>=B){ //European and American option, check and updater it.
+        V = V_barrier;
     }
-    if(isAmerican){
-        if(K<S && S<B && V_barrier<(S-K)){
-            V= max(V, S-K);
+    if(isAmerican){  //exercise early
+        if(isCall && K<S && S<B){
+            if(V<S-K){
+                V = S-K;
+            }
         }
     }
+    */
+    double V_barrier = B-K;
+    if(S>=B){ //European and American option, check and updater it.
+        V = V_barrier;
+    }
+    if(isAmerican){
+        if(isCall && S>K && S<B && V_barrier<S-K){
+            V_barrier = S-K;
+            V= V_barrier;
+        }
+    }
+    
     return 0;
 }
 
@@ -824,7 +840,7 @@ int Question7_solution(){
     
     ofs<<"Day 0: \n";
     
-    UpOutBarrierCallOption barrier_Am_call;
+    UpOutBarrierCallOption barrier_Am_call; 
     barrier_Am_call.K = 100;
     barrier_Am_call.B = 130;
     barrier_Am_call.T = 0.5;
@@ -833,6 +849,11 @@ int Question7_solution(){
     barrier_Am_call.q = 0.0;
     barrier_Am_call.isCall = true;
     barrier_Am_call.isAmerican = true;
+    
+    if(barrier_Am_call.K > barrier_Am_call.B){
+        ofs<<"B should greater than K."<<endl;
+        return 0;
+    }
     
     double t0 = 0;
     double S0 = 90;
