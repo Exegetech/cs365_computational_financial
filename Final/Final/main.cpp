@@ -397,9 +397,10 @@ double straddle::TerminalPayoff(double S) const
 
 int straddle::ValuationTest(double S, double &V) const
 {
-   
+    double instiric =0;
     if(isAmerican){
-        V= abs(S-K);
+        instiric = abs(S-K);
+        V = max(V, instiric);
     }
     
     return 0;
