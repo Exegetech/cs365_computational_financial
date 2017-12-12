@@ -75,7 +75,7 @@ int yield_from_price(double F, double c[], int n, double B_market, double tol, i
 
 void compute_Question1(double &y){
     ofstream outfile;
-    outfile.open("Solution_145.txt");
+    outfile.open("solution_Xingsong_Lin_Final_365.txt");
     outfile<<"ID: 23083576 --> array of{2,3,0,8,3,5,7,6}\n\n";
     double c[8] = {2,3,0,8,3,5,7,6};
     double F = 100;
@@ -397,12 +397,9 @@ double straddle::TerminalPayoff(double S) const
 
 int straddle::ValuationTest(double S, double &V) const
 {
-    double instiric =0;
     if(isAmerican){
-        instiric = abs(S-K);
-        V = max(V, instiric);
+        V = max(V, abs(S-K));
     }
-    
     return 0;
 }
 
@@ -499,7 +496,7 @@ int Question4_test()
     
     // output file
     ofstream ofs;
-    ofs.open("Solution_145.txt", ios_base::app);
+    ofs.open("solution_Xingsong_Lin_Final_365.txt", ios_base::app);
     ofs<<"Question 4: \n";
     
     double S = 150;
@@ -627,7 +624,7 @@ int Question5_test()
     
     // output file
     ofstream ofs;
-    ofs.open("Solution_145.txt", ios_base::app);
+    ofs.open("solution_Xingsong_Lin_Final_365.txt", ios_base::app);
     ofs<<"Question 5: \n";
     
     double S = 150;
@@ -759,11 +756,11 @@ int Question6_solution(){
     
     // output file
     ofstream ofs;
-    ofs.open("Solution_6.txt");
+    ofs.open("solution_Xingsong_Lin_Final_365.txt", ios_base::app);
     ofs<<"Solution for Question 6 Using sigma from 0.1 to 1:\n\n";
     ofs << setw(16) << "sigma" << " ";
     ofs << setw(16) << "FV_Eur_call" << " ";
-    ofs << setw(16) << "FV_Eur_put" << " ";
+    ofs << setw(16) << "FV_Eur_put" << " \n";
     ofs<<"------------------------------------------------------\n";
     
     double S = 90;
@@ -808,7 +805,7 @@ int Question6_solution(){
         ofs << setw(16) << fixed<<setprecision(2)<<FV_Eur_put << " ";
         ofs << endl;
     }
-    
+    ofs<<"=================================================\n\n";
     ofs.close();
     
     return 0;
@@ -819,7 +816,7 @@ int Question7_solution(){
     
     // output file
     ofstream ofs;
-    ofs.open("Solution_7.txt");
+    ofs.open("solution_Xingsong_Lin_Final_365.txt", ios_base::app);
     ofs<<"Question 7 solution: \n";
   
     //id: 23083576
@@ -866,8 +863,8 @@ int Question7_solution(){
     rc = binom.FairValue(n, &barrier_Am_call, S0+1, t0, FV_Am_call_1);
     rc = binom.FairValue(n, &barrier_Am_call, S0-1, t0, FV_Am_call_2);
     delta_0 = ( FV_Am_call_1 - FV_Am_call_2 ) * 0.5;
-    ofs<<"S0+1, fair value is "<<FV_Am_call_1<<endl;
-    ofs<<"S0-1, fair value is "<<FV_Am_call_2<<endl;
+    //ofs<<"S0+1, fair value is "<<FV_Am_call_1<<endl;
+    //ofs<<"S0-1, fair value is "<<FV_Am_call_2<<endl;
     ofs<<"delta of the barrier option using volatility_0 of "<<barrier_Am_call.sigma<<" is "<<delta_0<<endl;
     
     money = delta_0 * S0 - M0;
@@ -886,8 +883,8 @@ int Question7_solution(){
     rc = binom.FairValue(n, &barrier_Am_call, S1+1, t0, FV_Am_call_1);
     rc = binom.FairValue(n, &barrier_Am_call, S1-1, t0, FV_Am_call_2);
     delta_1 = ( FV_Am_call_1 - FV_Am_call_2 ) * 0.5;
-    ofs<<"S1+1, fair value is "<<FV_Am_call_1<<endl;
-    ofs<<"S1-1, fair value is "<<FV_Am_call_2<<endl;
+    //ofs<<"S1+1, fair value is "<<FV_Am_call_1<<endl;
+    //ofs<<"S1-1, fair value is "<<FV_Am_call_2<<endl;
     ofs<<"delta of the barrier option using volatility_0 of "<<barrier_Am_call.sigma<<" is "<<delta_1<<endl;
     money_1= (delta_1 - delta_0) * S1 + money;
     ofs<<"The value of Money at day 1 is "<<fixed<<setprecision(2)<<money_1<<endl;
@@ -906,8 +903,8 @@ int Question7_solution(){
     rc = binom.FairValue(n, &barrier_Am_call, S2+1, t0, FV_Am_call_1);
     rc = binom.FairValue(n, &barrier_Am_call, S2-1, t0, FV_Am_call_2);
     delta_2 = ( FV_Am_call_1 - FV_Am_call_2 ) * 0.5;
-    ofs<<"S2+1, fair value is "<<FV_Am_call_1<<endl;
-    ofs<<"S2-1, fair value is "<<FV_Am_call_2<<endl;
+    //ofs<<"S2+1, fair value is "<<FV_Am_call_1<<endl;
+    //ofs<<"S2-1, fair value is "<<FV_Am_call_2<<endl;
     ofs<<"delta of the barrier option using volatility_0 of "<<barrier_Am_call.sigma<<" is "<<delta_2<<endl;
     money_2= (delta_2 - delta_1) * S2 + money_1;
     ofs<<"The value of Money at day 2 is "<<fixed<<setprecision(2)<<money_2<<endl;
@@ -926,7 +923,7 @@ int main(int argc, const char * argv[]) {
     double yield;
     compute_Question1(yield);
     ofstream of;
-    of.open("Solution_145.txt", ios_base::app);
+    of.open("solution_Xingsong_Lin_Final_365.txt", ios_base::app);
     of<<"yield without rounding to 2 decimal is "<<0.01*yield<<"\n";
     of<<"=================================================\n\n";
     of.close();

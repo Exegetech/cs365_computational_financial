@@ -41,3 +41,34 @@ Result for equation 5.2 is : true.
 
 =====================================================================
 
+Solution for Question 6 Using sigma from 0.1 to 1:
+
+           sigma      FV_Eur_call       FV_Eur_put 
+------------------------------------------------------
+             0.1             0.18             0.78 
+            0.20             0.29             0.67 
+            0.30             0.32             0.64 
+            0.40             0.32             0.64 
+            0.50             0.32             0.64 
+            0.60             0.32             0.64 
+            0.70             0.30             0.66 
+            0.80             0.29             0.67 
+            0.90             0.29             0.67 
+            1.00             0.27             0.69 
+=================================================
+
+Question 7 solution: 
+Day 0: 
+imp vol Am Call = 0.3441
+delta of the barrier option using volatility_0 of 0.3441 is 0.3708
+The value of Money at day 0 is 28.37
+Day 1: 
+imp vol Am Call = 0.3525
+delta of the barrier option using volatility_0 of 0.3525 is 0.3768
+The value of Money at day 1 is 28.92
+Day 2: 
+imp vol Am Call = 0.3598
+delta of the barrier option using volatility_0 of 0.3598 is 0.3719
+The value of Money at day 2 is 28.47
+Close out: 
+The total profit is 0.20
