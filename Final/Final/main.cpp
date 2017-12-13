@@ -377,25 +377,25 @@ int Option::ValuationTests(double S, double &V) const
 }
 
 //Question 5
-class straddle : public Derivative
+class Straddle : public Derivative
 {
 public:
-    straddle(){K = 0; isCall = false; isAmerican = false;}
-    virtual ~straddle(){}
+    Straddle(){K = 0; isCall = false; isAmerican = false;}
+    virtual ~Straddle(){}
     virtual double TerminalPayoff(double S) const;
-    virtual int ValuationTest(double S, double &V) const;
+    virtual int ValuationTests(double S, double &V) const;
     
     double K;
     bool isCall;
     bool isAmerican;
 };
 
-double straddle::TerminalPayoff(double S) const
+double Straddle::TerminalPayoff(double S) const
 {
     return abs(S-K);
 }
 
-int straddle::ValuationTest(double S, double &V) const
+int Straddle::ValuationTests(double S, double &V) const
 {
     if(isAmerican){
         V = max(V, abs(S-K));
@@ -671,7 +671,7 @@ int Question5_test()
     Am_call.isCall = true;
     Am_call.isAmerican = true;
     
-    straddle str_Eur;
+    Straddle str_Eur;
     str_Eur.r = r;
     str_Eur.q = q;
     str_Eur.sigma = sigma;
@@ -680,7 +680,7 @@ int Question5_test()
     str_Eur.isCall = false;
     str_Eur.isAmerican = false;
     
-    straddle str_Am;
+    Straddle str_Am;
     str_Am.r = r;
     str_Am.q = q;
     str_Am.sigma = sigma;

@@ -28,7 +28,7 @@ Result for passing equation 4.3 is true.
 
 Question 5: 
                S        FV_Am_put       FV_Eur_put       FV_Am_call      FV_Eur_call       FV_str_Eur        FV_str_Am 
-             200          17.6612          17.3785          65.2612          63.0751          80.4536          80.4536 
+             200          17.6612          17.3785          65.2612          63.0751          80.4536          82.5889 
 ---------------------------Separated Line-----------------------------------
 
 Test for Equation 5.1: 
